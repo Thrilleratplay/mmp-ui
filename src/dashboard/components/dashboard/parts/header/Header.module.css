@@ -3,7 +3,7 @@
 }
 
 .title {
-    font-family: Greycliff CF, var(--mantine-font-family);
+    font-family: "Greycliff CF", var(--mantine-font-family);
     font-weight: 700;
 }
 
@@ -20,7 +20,7 @@
         box-shadow 150ms ease,
         transform 100ms ease;
 
-    @mixin hover {
+    :hover {
         box-shadow: var(--mantine-shadow-md);
         transform: scale(1.05);
     }
