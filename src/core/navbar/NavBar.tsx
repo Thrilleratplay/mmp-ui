@@ -75,14 +75,14 @@ export function NavBar() {
         }
     }, [settings.experimental])
 
-    const featureLinks = menuItems.map((link, index) => (
+    const featureLinks = menuItems.map((link) => (
         <NavbarLink
             {...link}
             key={link.label}
         />
     ));
 
-    const opsLinks = operationalItems.map((link, index) => (
+    const opsLinks = operationalItems.map((link) => (
         <NavbarLink
             {...link}
             key={link.label}
@@ -95,7 +95,7 @@ export function NavBar() {
                 <IconBrandMantine type="mark" size={30} />
             </Center>
 
-            <div className={classes.navbarMain}>
+            <div className={classes['navbar-main']}>
                 <Stack justify="center" gap={0}>
                     {featureLinks}
                 </Stack>

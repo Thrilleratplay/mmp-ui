@@ -8,14 +8,14 @@
 }
 
 .item {
+    align-items: center;
+    background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-8));
+    border-radius: var(--mantine-radius-md);
     display: flex;
     flex-direction: column;
-    align-items: center;
+    height: 90px;
     justify-content: center;
     text-align: center;
-    border-radius: var(--mantine-radius-md);
-    height: rem(90px);
-    background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-8));
     transition:
         box-shadow 150ms ease,
         transform 100ms ease;

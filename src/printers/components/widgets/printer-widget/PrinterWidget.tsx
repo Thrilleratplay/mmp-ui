@@ -17,7 +17,7 @@ export function PrinterWidget(w: Widget) {
     if (loading) return <>Loading...</>;
     return (
         <Card withBorder radius="md" p="md" className={classes.card}>
-            <Card.Section className={classes.pictureSection}>
+            <Card.Section className={classes['picture-section']}>
                 <Center>
                     {printer?.camera_url ? <Image
                         h={300}

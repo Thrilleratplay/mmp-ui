@@ -1,14 +1,14 @@
 .card {
     background-color: var(--mantine-color-body);
-    height: rem(280px);
-    width: rem(280px);
+    height: 280px;
+    width: 280px;
 }
 
 .item {
     & + & {
-        padding-top: var(--mantine-spacing-sm);
+        border-top: 1px solid light-dark(var(--mantine-color-gray-2) var(--mantine-color-dark-4));
         margin-top: var(--mantine-spacing-sm);
-        border-top: rem(1px) solid light-dark(var(--mantine-color-gray-2) var(--mantine-color-dark-4));
+        padding-top: var(--mantine-spacing-sm);
     }
 }
 

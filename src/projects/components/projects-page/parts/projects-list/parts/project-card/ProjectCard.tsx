@@ -55,7 +55,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
                                     stroke={1.5}
                                     color={theme.colors.dark[2]}
                                 />
-                                <Text size="sm" className={classes.bodyText}>
+                                <Text size="sm" className={classes['body-text']}>
                                     7847
                                 </Text>
                             </Center>
@@ -65,7 +65,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
                                     stroke={1.5}
                                     color={theme.colors.dark[2]}
                                 />
-                                <Text size="sm" className={classes.bodyText}>
+                                <Text size="sm" className={classes['body-text']}>
                                     5
                                 </Text>
                             </Center>
