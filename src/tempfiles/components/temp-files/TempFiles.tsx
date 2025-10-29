@@ -1,54 +1,52 @@
-import { SettingsContext } from "@/core/settings/settingsContext";
-import { TempFile } from "@/tempfiles/entities/TempFile";
+import { Project } from '@/projects/entities/Project';
 import { IconTrash, IconFileArrowRight } from "@tabler/icons-react";
 import { ActionIcon, Table, Group, Center, Skeleton } from "@mantine/core";
-import useAxios from "axios-hooks";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { ProjectSelect } from "./parts/project-select/ProjectSelect";
-import { Project } from "@/projects/entities/Project";
 import { Header } from "@/core/header/Header";
 import { notifications } from "@mantine/notifications";
+import {
+  usePostTempFile,
+  useDeleteTempFile,
+  useGetTempFiles
+} from '@/apiServices/tempFiles';
+import {
+    useGetProjectsList
+} from '@/apiServices/projects';
 
 export function TempFiles() {
-    const reload = useRef(Math.floor(1000 + Math.random() * 9000));
-    const { settings } = useContext(SettingsContext);
-    const [tempFiles, setTempFiles] = useState<TempFile[]>([]);
     const [actionLoading, setActionLoading] = useState(false);
-    const [{ }, callSendToProject] = useAxios({ url: `${settings.localBackend}/tempfiles/xxx`, method: 'post' }, { manual: true })
-    const [{ }, callDeleteTemp] = useAxios({ url: `${settings.localBackend}/tempfiles/xxx/delete`, method: 'post' }, { manual: true })
-    const [{ data, loading, error }] = useAxios(
-        `${settings.localBackend}/tempfiles?_=${reload.current}`
-    );
-    useEffect(() => {
-        if (!data) return;
-        setTempFiles(data);
-    }, [data]);
+    const callSendToProject = usePostTempFile();
+    const callDeleteTemp =  useDeleteTempFile();
 
-    const [{ data: projects, loading: pLoading, error: pError }] = useAxios<Project[]>(
-        `${settings.localBackend}/projects/list?_=${reload.current}`
-    );
+    const { 
+        data,
+        isLoading,
+        // error,
+     } = useGetTempFiles();
+    // useEffect(() => {
+    //     if (!data) return;
+    //     setTempFiles(data);
+    // }, [data]);
+    const { data: projects, isLoading: pLoading } = useGetProjectsList();
 
     const setProjectUUID = (i: number, p: Project) => {
-        const copy = [...tempFiles]
-        copy[i].project_uuid = p.uuid
-        setTempFiles(copy)
+        if (!data || !data[i]) {
+            return;
+        }
+        data[i].project_uuid = p.uuid;
     }
 
     const sendToProject = (i: number) => {
-        if (!tempFiles[i].project_uuid) return;
+        if (!data || !data[i]) {
+            return;
+        }
         setActionLoading((s) => !s)
-        callSendToProject({
-            url: `${settings.localBackend}/tempfiles/${tempFiles[i].uuid}`,
-            data: tempFiles[i]
-        })
-            .then(({ data }) => {
-                console.log(data);
-                const copy = [...tempFiles]
-                copy.splice(i, 1)
-                setTempFiles(copy)
+        
+        callSendToProject(data[i].uuid, data[i]).then(() => {
                 notifications.show({
                     title: 'Great Success!',
-                    message: 'Tempory moved do project!',
+                    message: 'Temporary moved do project!',
                     color: 'indigo',
                 })
                 setActionLoading((s) => !s)
@@ -61,18 +59,15 @@ export function TempFiles() {
     }
 
     const deleteTemp = (i: number) => {
+        if (!data || !data[i]) {
+            return;
+        }
         setActionLoading((s) => !s)
-        callDeleteTemp({
-            url: `${settings.localBackend}/tempfiles/${tempFiles[i].uuid}/delete`
-        })
-            .then(({ data }) => {
-                console.log(data);
-                const copy = [...tempFiles]
-                copy.splice(i, 1)
-                setTempFiles(copy)
+        callDeleteTemp(data[i].uuid)
+            .then(() => {
                 notifications.show({
                     title: 'Great Success!',
-                    message: 'Tempory sucessfuly deleted!',
+                    message: 'Temporary successfully deleted!',
                     color: 'indigo',
                 })
                 setActionLoading((s) => !s)
@@ -94,10 +89,10 @@ export function TempFiles() {
                 </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-                {tempFiles.map((t, i) => <Table.Tr key={t.uuid}>
+                {data?.map((t, i) => <Table.Tr key={t.uuid}>
                     <Table.Td>{t.name}</Table.Td>
                     <Table.Td>
-                        <ProjectSelect boosted={t.matches} projects={projects} onChange={(p) => { setProjectUUID(i, p) }} loading={pLoading} value={t.project_uuid} />
+                        <ProjectSelect boosted={t.matches} projects={projects ?? []} onChange={(p) => { setProjectUUID(i, p) }} loading={pLoading} value={t.project_uuid} />
                     </Table.Td>
                     <Table.Td>
                         <Group justify="center">
@@ -110,7 +105,7 @@ export function TempFiles() {
                         </Group>
                     </Table.Td>
                 </Table.Tr>)}
-                {loading && Array.from(Array(10))
+                {isLoading && Array.from(Array(10))
                     .map((_, i) => <Table.Tr key={i}>
                         <Table.Td><Skeleton height={30} radius="xl" /></Table.Td>
                         <Table.Td><Skeleton height={30} radius="xl" /></Table.Td>

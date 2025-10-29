@@ -3,22 +3,20 @@ import { Filter } from "./parts/project-filter-card/ProjectFilterCard.tsx";
 import { ProjectCard } from "./parts/project-card/ProjectCard.tsx";
 import { useSearchParams } from "react-router-dom";
 import useAxios from "axios-hooks";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Project } from "@/projects/entities/Project.ts";
-import { SettingsContext } from "@/core/settings/settingsContext.ts";
 import { ProjectFilter } from "./parts/project-filter/ProjectFilter.tsx";
 
 export function ProjectsList() {
     const [searchParams, setSearchParams] = useSearchParams();
     const reload = useRef(Math.floor(1000 + Math.random() * 9000));
-    const { settings } = useContext(SettingsContext);
     const [page, setPage] = useState(1);
     const [perPage, setPerPage] = useState('20')
     const [projects, setProjects] = useState<Project[]>([])
     const [filter, setFilter] = useState<Filter>({ name: '', tags: [] })
     const size = rem('280px');
     const [{ data, loading, error }] = useAxios(
-        `${settings.localBackend}/projects?page=${page - 1}&size=${perPage}${filter.name ? '&name=' + filter.name : ''}${filter.tags.length > 0 ? '&tags=' + filter.tags?.join(",") : ''}&_=${reload.current}`
+        `/projects?page=${page - 1}&size=${perPage}${filter.name ? '&name=' + filter.name : ''}${filter.tags.length > 0 ? '&tags=' + filter.tags?.join(",") : ''}&_=${reload.current}`
     );
     useEffect(() => {
         if (!data?.items) return;

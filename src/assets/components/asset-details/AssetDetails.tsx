@@ -7,7 +7,6 @@ type AssetDetailsProps = {
     asset: Asset;
 }
 
-
 export function AssetDetails({ asset }: AssetDetailsProps) {
     const [tab, setTab] = useState<string | null>('file')
     const [propFilter, setPropFilter] = useState("")

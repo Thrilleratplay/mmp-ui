@@ -1,12 +1,12 @@
 import * as THREE from 'three'
 import { Canvas, useLoader, useThree } from '@react-three/fiber'
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
-import { Suspense, useContext, useLayoutEffect, useRef, useState } from "react";
+import { Suspense, useLayoutEffect, useRef, useState } from "react";
 import { Asset } from "../../../entities/Assets.ts";
 import { Center, GizmoHelper, GizmoViewport, Grid, Html, OrbitControls, useProgress } from '@react-three/drei'
 import { useElementSize } from "@mantine/hooks";
-import { Alert, lighten } from "@mantine/core";
-import { SettingsContext } from '@/core/settings/settingsContext.ts';
+import { Alert } from "@mantine/core";
+import { BACKEND_HTTP_URL_ROOT } from '@/core/utils/constants.ts';
 
 
 type ModelProps = {
@@ -16,8 +16,7 @@ type ModelProps = {
 }
 
 function Model({ color, model, projectUuid }: ModelProps) {
-    const { settings } = useContext(SettingsContext);
-    const geom = useLoader(STLLoader, `${settings.localBackend}/projects/${projectUuid}/assets/${model.id}/file`);
+    const geom = useLoader(STLLoader, `${ BACKEND_HTTP_URL_ROOT}/projects/${projectUuid}/assets/${model.id}/file`);
     const meshRef = useRef<THREE.Mesh>(null!)
 
     const [active, setActive] = useState(false)
@@ -85,8 +84,8 @@ function MoveCamera({ children, models }: { children: JSX.Element[], models: Ass
         box.getSize(size);
         const fov = camera.fov * (Math.PI / 180);
         const fovh = 2 * Math.atan(Math.tan(fov / 2) * camera.aspect);
-        let dx = size.z / 2 + Math.abs(size.x / 2 / Math.tan(fovh / 2));
-        let dy = size.z / 2 + Math.abs(size.y / 2 / Math.tan(fov / 2));
+        const dx = size.z / 2 + Math.abs(size.x / 2 / Math.tan(fovh / 2));
+        const dy = size.z / 2 + Math.abs(size.y / 2 / Math.tan(fov / 2));
         let cameraZ = Math.max(dx, dy);
 
         // offset the camera, if desired (to avoid filling the whole canvas)

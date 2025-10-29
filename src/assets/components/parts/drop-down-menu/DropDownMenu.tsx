@@ -1,43 +1,18 @@
-import { SettingsContext } from "@/core/settings/settingsContext";
 import { ActionIcon, Menu, rem } from "@mantine/core";
 import { IconDotsVertical, IconDownload, IconTrash } from "@tabler/icons-react";
-import useAxios from "axios-hooks";
-import { useContext } from "react";
+import { useDeleteProjectAsset } from "@/apiServices/projects";
 
 type DropDownMenuProps = {
-    id: string;
+    assetId: string;
     projectUuid: string;
     children?: React.ReactNode;
     downloadURL?: string
-    onDelete?: () => void;
+    canDelete?: boolean;
     openDetails?: () => void;
-    toggleLoad?: () => void;
 }
 
-export function DropDownMenu({ id, projectUuid, children, downloadURL, onDelete, openDetails, toggleLoad }: DropDownMenuProps) {
-    const { settings } = useContext(SettingsContext);
-    const [{ }, callDelete] = useAxios(
-        {
-            url: `${settings.localBackend}/projects/${projectUuid}/assets/${id}/delete`,
-            method: 'POST'
-        },
-        { manual: true }
-    );
-
-    const handleDelete = () => {
-        toggleLoad && toggleLoad();
-        callDelete()
-            .then((data) => {
-                console.log(data);
-                onDelete && onDelete();
-            }).catch((e) => {
-                console.log(e);
-            })
-            .finally(() => {
-                console.log('finally')
-                toggleLoad && toggleLoad();
-            })
-    }
+export function DropDownMenu({ assetId, projectUuid, children, downloadURL, canDelete, openDetails }: DropDownMenuProps) {
+    const callDelete = useDeleteProjectAsset();
 
     return (
         <Menu>
@@ -61,10 +36,10 @@ export function DropDownMenu({ id, projectUuid, children, downloadURL, onDelete,
                     href={downloadURL}
                     leftSection={<IconDownload style={{ width: rem(14), height: rem(14) }} />}
                 >Download</Menu.Item>}
-                {onDelete && <><Menu.Divider />
+                {canDelete && <><Menu.Divider />
                     <Menu.Item
                         color="red"
-                        onClick={handleDelete}
+                        onClick={() => callDelete(projectUuid, assetId)}
                         leftSection={<IconTrash style={{ width: rem(14), height: rem(14) }} />}
                     >Delete</Menu.Item></>}
             </Menu.Dropdown>

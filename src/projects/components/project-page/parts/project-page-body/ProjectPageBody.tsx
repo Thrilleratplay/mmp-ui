@@ -30,12 +30,12 @@ export function ProjectPageBody({ projectUuid, project, onProjectChange }: Proje
     const [selectedModels, selectedModelsHandlers] = useListState<Asset>([]);
     const [selectedAsset, setSelectedAsset] = useState<Asset>();
     const [typeFilter, setTypeFilter] = useState<string | null>(searchParams.get('tab'));
-    const [{ data: assetTypes, loading: tLoading, error: tError }] = useAxios<AssetType[]>(
-        `${settings.localBackend}/assettypes`
-    );
-    const [{ data, loading, error }, refetch] = useAxios<Asset[]>(
-        `${settings.localBackend}/projects/${projectUuid}/assets`
-    );
+    const [{ 
+        data: assetTypes, 
+        // loading: tLoading, 
+        // error: tError,
+     }] = useAxios<AssetType[]>('assettypes');
+    const [{ data, loading, error }, refetch] = useAxios<Asset[]>(`/projects/${projectUuid}/assets`);
     useEffect(() => {
         if (data) {
             setAssets(data);

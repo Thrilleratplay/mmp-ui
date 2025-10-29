@@ -1,19 +1,21 @@
-import { SettingsContext } from "@/core/settings/settingsContext";
 import { Printer, printerTypes } from "@/printers/entities/Printer";
 import { ActionIcon, Button, Group, Input, Select, TextInput } from "@mantine/core";
 import { hasLength, isNotEmpty, useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
 import { IconPlugConnected } from "@tabler/icons-react";
-import useAxios from "axios-hooks";
-import { useContext, useEffect } from "react";
+import { useState } from 'react';
+import {
+    usePostSavePrinter,
+    usePostTestPrinters,
+} from '@/apiServices/printers';
 
 type PrinterFormProps = {
     printer?: Printer
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onPrinterChange: (p: any) => void
 }
 
 export function PrinterForm({ printer, onPrinterChange }: PrinterFormProps) {
-    const { settings } = useContext(SettingsContext);
     const form = useForm({
         initialValues: {
             name: '',
@@ -27,21 +29,16 @@ export function PrinterForm({ printer, onPrinterChange }: PrinterFormProps) {
             address: hasLength({ min: 8 }, "You must insert an address (with http://)")
         },
     });
-    const [{ loading }, executeSave] = useAxios({ method: 'POST' }, { manual: true })
-    const [{ loading: cLoading }, executTest] = useAxios({ method: 'POST', url: `${settings.localBackend}/printers/test` }, { manual: true })
-    useEffect(() => {
-        if (!printer) return;
-        form.setValues(printer)
-    }, [printer])
+    const [isSaving, setIsSaving] = useState(false);
+    const [isConnecting, setIsConnecting] = useState(false);
+    const executeTest = usePostTestPrinters();
+    const executeSave = usePostSavePrinter();
+
     const onSave = () => {
-        const url = `${settings.localBackend}/printers${printer?.uuid ? '/' + printer.uuid : ''}`
-        executeSave({
-            url,
-            data: {
-                ...form.values,
-            }
-        })
+        setIsSaving(true);
+        executeSave(form.values, printer?.uuid)
             .then(({ data }) => {
+                setIsSaving(false);
                 onPrinterChange(data)
                 notifications.show({
                     title: 'Great Success!',
@@ -50,6 +47,7 @@ export function PrinterForm({ printer, onPrinterChange }: PrinterFormProps) {
                 })
             })
             .catch((e) => {
+                setIsSaving(false);
                 console.log(e)
             });
     };
@@ -58,13 +56,16 @@ export function PrinterForm({ printer, onPrinterChange }: PrinterFormProps) {
         if (form.values.address != '' && form.values.type != '') {
             const tyype = printerTypes.get(form.values.type)
             if (!tyype) return;
-            executTest({ data: form.values })
+            setIsConnecting(true);
+            executeTest(form.values)
                 .then(({ data }) => {
+                    setIsConnecting(false);
                     form.setFieldValue('version', data.version)
                     form.setFieldValue('state', data.state)
                     form.setFieldValue('status', data.status)
                 })
                 .catch((e) => {
+                    setIsConnecting(true);
                     console.log(e)
                 });
         }
@@ -98,7 +99,7 @@ export function PrinterForm({ printer, onPrinterChange }: PrinterFormProps) {
                     mb="sm"
                     {...form.getInputProps('address')}
                     rightSection={
-                        <ActionIcon variant="filled" aria-label="Connect" onClick={connect} loading={cLoading}>
+                        <ActionIcon variant="filled" aria-label="Connect" onClick={connect} loading={isConnecting}>
                             <IconPlugConnected style={{ width: '70%', height: '70%' }} stroke={1.5} />
                         </ActionIcon>
                     }
@@ -123,7 +124,7 @@ export function PrinterForm({ printer, onPrinterChange }: PrinterFormProps) {
                 {...form.getInputProps('state')}
             />}
             <Group justify="flex-end" mt="md">
-                <Button type="submit" loading={loading}>Save</Button>
+                <Button type="submit" loading={isSaving}>Save</Button>
             </Group>
         </form>
     )

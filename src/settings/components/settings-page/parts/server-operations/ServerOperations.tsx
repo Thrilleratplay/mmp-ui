@@ -1,36 +1,29 @@
 import { ConfirmDialog } from "@/core/dialogs/confirm-dialog/ConfirmDialog";
-import { SettingsContext } from "@/core/settings/settingsContext";
 import { Button, Fieldset } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import useAxios from "axios-hooks";
-import { useContext, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { useGetDiscovery } from "@/apiServices/system";
 
 export function ServerOperations() {
-    const { settings } = useContext(SettingsContext);
     const [isOpen, setIsOpen] = useState(false);
-    const [{ loading }, doDiscovery] = useAxios(
-        {
-            url: `${settings.localBackend}/system/discovery`
-        }, { manual: true })
+    const [isEnabled, setIsEnabled] = useState(false);
+    const { data, isLoading } = useGetDiscovery(isEnabled);
 
+
+    if (data) {
+        notifications.show({
+            title: 'Great Success!',
+            message: 'Global discovery started',
+            color: 'indigo',
+        })
+    }
     const onOk = useCallback(() => {
         setIsOpen(false);
-        doDiscovery()
-            .then(({ data }) => {
-                console.log(data);
-                notifications.show({
-                    title: 'Great Success!',
-                    message: 'Global discovery started',
-                    color: 'indigo',
-                })
-            })
-            .catch((e) => {
-                console.log(e)
-            });
-    }, [doDiscovery])
+        setIsEnabled(true);
+    }, [])
     return (
         <Fieldset legend="Discovery">
-        <Button color="blue" onClick={() => setIsOpen(true)} loading={loading}>Run discovery</Button>
+        <Button color="blue" onClick={() => setIsOpen(true)} loading={isLoading}>Run discovery</Button>
             <ConfirmDialog opened={isOpen} onOk={onOk} onCancel={() => setIsOpen(false)} />
         </Fieldset >
     )

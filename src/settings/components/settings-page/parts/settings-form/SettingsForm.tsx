@@ -1,6 +1,4 @@
-import useAxios from "axios-hooks";
-import { useContext, useEffect, useRef } from "react";
-import { SettingsContext } from "@/core/settings/settingsContext";
+import { useEffect, useState } from "react";
 import { Button, Container, Fieldset, Group } from "@mantine/core";
 import { FormProvider, useForm } from "./context";
 import { Core } from "./parts/Core";
@@ -11,16 +9,12 @@ import { Integrations } from "./parts/Integrations";
 import { Form } from "react-router-dom";
 import { AgentSettings } from "@/settings/entities/AgentSettings";
 import { notifications } from "@mantine/notifications";
+import { useGetSettings, usePostSettings } from "@/apiServices/system"; 
 
 export function SettingsForm() {
-    const reload = useRef(Math.floor(1000 + Math.random() * 9000));
-    const { settings } = useContext(SettingsContext);
-    const [{ data, loading: cLoading, error }] = useAxios({ url: `${settings.localBackend}/system/settings?_=${reload.current}` })
-
-    const [{ loading: sLoading }, executeSave] = useAxios({
-        url: `${settings.localBackend}/system/settings`,
-        method: 'POST'
-    }, { manual: true })
+    const { data, isLoading } = useGetSettings();
+    const executeSave = usePostSettings();
+    const [isSaving, setIsSaving] = useState(false);
 
     const form = useForm({
         initialValues: {
@@ -56,13 +50,15 @@ export function SettingsForm() {
             form.setInitialValues(data);
             form.setValues(data);
         }
-    }, [data])
+    }, [data, form])
 
     const onSave = (settings: AgentSettings) => {
+        setIsSaving(true);
         executeSave({
             data: settings
         })
-            .then(({ data }) => {
+            .then(() => {
+                setIsSaving(false);
                 notifications.show({
                     title: 'Great Success!',
                     message: 'Settings updated',
@@ -70,6 +66,7 @@ export function SettingsForm() {
                 })
             })
             .catch((e) => {
+                setIsSaving(false);
                 console.log(e)
             });
     };
@@ -85,7 +82,7 @@ export function SettingsForm() {
                     <Integrations />
                     <Fieldset legend="Commit">
                         <Group justify="flex-end">
-                            <Button type="submit" loading={sLoading || cLoading} color="red">Save</Button>
+                            <Button type="submit" loading={isSaving || isLoading} color="red">Save</Button>
                             <Button type="reset" onClick={form.reset}>Reset</Button>
                         </Group>
                     </Fieldset>

@@ -1,41 +1,44 @@
-import useAxios from "axios-hooks";
 import { AddPrinter } from "./parts/add-printer/AddPrinter";
-import { useContext, useEffect, useRef, useState } from "react";
-import { SettingsContext } from "@/core/settings/settingsContext";
+import { useState } from "react";
 import { Anchor, Avatar, Badge, Group, Table, Text, ActionIcon, rem, Menu, Tabs } from "@mantine/core";
-import { Printer, printerTypes } from "@/printers/entities/Printer";
+import { printerTypes } from "@/printers/entities/Printer";
 import { IconDots, IconPhoto, IconReportAnalytics, IconSettings, IconTrash } from "@tabler/icons-react";
 import { Header } from "@/core/header/Header";
 import { notifications } from "@mantine/notifications";
 import { Link } from "react-router-dom";
+import {
+    useGetPrinters,
+    useDeletePrinter,
+} from '@/apiServices/printers';
 
 export function PrintersPage() {
-    const reload = useRef(Math.floor(1000 + Math.random() * 9000));
     const iconStyle = { width: rem(12), height: rem(12) };
-    const { settings } = useContext(SettingsContext);
-    const [printers, setPrinters] = useState<Printer[]>([])
-    const [{ data, loading: cLoading, error }] = useAxios({ url: `${settings.localBackend}/printers?_=${reload.current}` })
-    const [{ loading: dLoading }, executeDelete] = useAxios({ method: 'POST' }, { manual: true })
-    useEffect(() => {
-        setPrinters(data)
-    }, [data]);
+    const { data: printers, isLoading } = useGetPrinters();
+    const [isDeleting, setIsDeleting] = useState(false); 
+    const executeDelete = useDeletePrinter()
+
     function deletePrinter(i: number): void {
+        if (!printers) {
+            return;
+        }
+
         const printer = printers[i];
-        executeDelete({
-            url: `${settings.localBackend}/printers/${printer.uuid}/delete`
-        })
+        if (!printer) {
+            return;
+        }
+        setIsDeleting(true);
+        executeDelete(printer.uuid)
             .then(() => {
                 notifications.show({
                     title: 'Great Success!',
                     message: 'Printer deleted!',
                     color: 'indigo',
                 })
-                const copy = [...printers]
-                copy.splice(i, 1)
-                setPrinters(copy)
+                setIsDeleting(false);
             })
             .catch((e) => {
                 console.log(e)
+                setIsDeleting(true);
             });
 
     }
@@ -101,7 +104,7 @@ export function PrintersPage() {
                                                 withinPortal
                                             >
                                                 <Menu.Target>
-                                                    <ActionIcon variant="subtle" color="gray" loading={dLoading}>
+                                                    <ActionIcon variant="subtle" color="gray" loading={isLoading || isDeleting}>
                                                         <IconDots style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
                                                     </ActionIcon>
                                                 </Menu.Target>

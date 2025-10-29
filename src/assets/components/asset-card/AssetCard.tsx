@@ -4,11 +4,11 @@ import classes from './AssetCard.module.css';
 import { Icon3dRotate, IconFile, IconFile3d, IconFileTypePdf, IconZoomScan } from "@tabler/icons-react";
 import { DropDownMenu } from "../parts/drop-down-menu/DropDownMenu";
 import { SetAsMain } from "../parts/set-as-main/SetAsMain";
-import { SettingsContext } from "@/core/settings/settingsContext";
-import { useCallback, useContext, useState } from "react";
+import { useCallback, useState } from "react";
 import { Lightbox } from "react-modal-image";
 import { useToggle } from "@mantine/hooks";
 import { SelectBtn } from "../parts/select-btn/SelectBtn";
+import { BACKEND_HTTP_URL_ROOT } from "@/core/utils/constants";
 
 type AssetCardProps = {
     asset: Asset;
@@ -27,21 +27,20 @@ iconMap.set('.stl', <IconFile3d />);
 
 export function AssetCard({ asset, focused, onFocused, onDelete, onChange, view3d, onView3dChange }: AssetCardProps) {
     const theme = useMantineTheme();
-    const { settings } = useContext(SettingsContext);
     const [loading, setLoading] = useState(false);
     const [modal, toggleModal] = useToggle([false, true]);
     const toggleLoadingCallback = useCallback(() => {
         setLoading((l) => {
             return !l
         })
-    }, [loading])
+    }, [])
 
     const size = rem('280px');
     return (
         <>
             {modal && asset.image_id && asset.image_id != "" && <Lightbox
-                medium={`${settings.localBackend}/projects/${asset.project_uuid}/assets/${asset.image_id}/file`}
-                large={`${settings.localBackend}/projects/${asset.project_uuid}/assets/${asset.image_id}/file`}
+                medium={`${BACKEND_HTTP_URL_ROOT}/projects/${asset.project_uuid}/assets/${asset.image_id}/file`}
+                large={`${BACKEND_HTTP_URL_ROOT}/projects/${asset.project_uuid}/assets/${asset.image_id}/file`}
                 hideDownload={true}
                 onClose={toggleModal}
             />}
@@ -50,7 +49,7 @@ export function AssetCard({ asset, focused, onFocused, onDelete, onChange, view3
                     <AspectRatio ratio={16 / 9}>
                         {asset?.image_id === "" ? (iconMap.get(asset.extension) ?? <IconFile />) :
                             <Image
-                                src={`${settings.localBackend}/projects/${asset.project_uuid}/assets/${asset.image_id}/file`}
+                                src={`${BACKEND_HTTP_URL_ROOT}/projects/${asset.project_uuid}/assets/${asset.image_id}/file`}
                                 alt={asset.name}
                             />
                         }
@@ -78,9 +77,9 @@ export function AssetCard({ asset, focused, onFocused, onDelete, onChange, view3
                             </ActionIcon>}
                             < DropDownMenu
                                 projectUuid={asset.project_uuid}
-                                id={asset.id}
+                                assetId={asset.id}
                                 openDetails={() => { onFocused() }}
-                                downloadURL={`${settings.localBackend}/projects/${asset.project_uuid}/assets/${asset.id}/file?download=true'`}
+                                downloadURL={`${BACKEND_HTTP_URL_ROOT}/projects/${asset.project_uuid}/assets/${asset.id}/file?download=true'`}
                                 onDelete={onDelete}
                                 toggleLoad={toggleLoadingCallback}>
                                 <SetAsMain projectUuid={asset.project_uuid} assetId={asset.image_id} onChange={onChange} />

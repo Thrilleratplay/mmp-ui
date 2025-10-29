@@ -1,15 +1,12 @@
 import { Anchor, Button, Container, Group, Text, Textarea } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import useAxios from "axios-hooks";
-import { useContext } from "react";
-import { SettingsContext } from "@/core/settings/settingsContext";
+import { useDownloader } from '@/apiServices/downloader';
+import { useState } from 'react'; 
 
 export function ImportProject() {
-    const { settings } = useContext(SettingsContext);
-    const [{ loading, error }, fetchProject] = useAxios({
-        url: `${settings.localBackend}/downloader/fetch`,
-        method: 'post',
-    }, { manual: true })
+    const fetchProject = useDownloader();
+    const [isDownloading, setIsDownloading] = useState(false);
+
     const form = useForm({
         initialValues: {
             urls: '',
@@ -20,11 +17,13 @@ export function ImportProject() {
     });
     const onFetch = () => {
         const urls = form.values.urls.split('\n');
+        setIsDownloading(true);
         fetchProject({
             data: {
                 url: urls.join(',')
             }
         }).then(({ data }) => {
+            setIsDownloading(false);
             console.log(data);
         })
     }
@@ -41,7 +40,7 @@ export function ImportProject() {
                     />
                     <Text>Check out <Anchor href="https://github.com/Maker-Management-Platform/mmp-companion">MMP Companion</Anchor> to import from more platforms.</Text>
                     <Group justify="flex-end" mt="md">
-                        <Button type="submit" loading={loading}>Submit</Button>
+                        <Button type="submit" loading={isDownloading}>Submit</Button>
                     </Group>
                 </form>
             </Container>

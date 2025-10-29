@@ -1,9 +1,7 @@
 import { Button, Group, rem, TagsInput, Text, Textarea, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { Project } from "../../../entities/Project.ts";
-import useAxios from "axios-hooks";
-import { useContext, useState } from "react";
-import { SettingsContext } from "@/core/settings/settingsContext.ts";
+import { useState } from "react";
 import { notifications } from '@mantine/notifications';
 import { Dropzone } from "@mantine/dropzone";
 import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
@@ -13,19 +11,16 @@ type ProjectFormProps = {
     onProjectChange: (p: Project) => void;
     withUpload?: boolean;
 };
+import { usePostProject } from '@/apiServices/projects.ts';
 
 export function ProjectForm({ project, onProjectChange, withUpload }: ProjectFormProps) {
-    const { settings } = useContext(SettingsContext);
     const [files, setFiles] = useState<File[]>([]);
-    const [{ data, loading, error }, executeSave] = useAxios(
-        {
-            method: 'POST'
-        },
-        { manual: true }
-    )
+    const executeSave = usePostProject();
+    const [isLoading, setIsLoading] = useState(false);
+
     const form = useForm({
         initialValues: {
-            tags: [],
+            // tags: [],
             ...project,
         },
         validate: {
@@ -42,11 +37,10 @@ export function ProjectForm({ project, onProjectChange, withUpload }: ProjectFor
         if (files.length > 0) {
             files.forEach((file) => formData.append("files", file));
         }
-        executeSave({
-            url: `${settings.localBackend}/projects${project.uuid ? "/" + project.uuid : ''}`,
-            data: formData
-        })
+        setIsLoading(true);
+        executeSave(project.uuid, formData)
             .then(({ data }) => {
+                setIsLoading(false);
                 onProjectChange(data)
                 notifications.show({
                     title: 'Great Success!',
@@ -55,6 +49,7 @@ export function ProjectForm({ project, onProjectChange, withUpload }: ProjectFor
                 })
             })
             .catch((e) => {
+                setIsLoading(false);
                 console.log(e)
             });
     };
@@ -121,7 +116,7 @@ export function ProjectForm({ project, onProjectChange, withUpload }: ProjectFor
                 <UploadPreview files={files} selected={form.values.default_image_name} onChange={(name) => { console.log(name); form.setFieldValue('default_image_name', name) }} />
             </>}
             <Group justify="flex-end" mt="md">
-                <Button type="submit" loading={loading}>Submit</Button>
+                <Button type="submit" loading={isLoading}>Submit</Button>
             </Group>
         </form>
     );

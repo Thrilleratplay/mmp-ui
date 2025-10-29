@@ -1,30 +1,22 @@
-import { SettingsContext } from "@/core/settings/settingsContext";
 import { IconPrinter } from "@tabler/icons-react";
 import { Printer } from "@/printers/entities/Printer";
 import { ActionIcon, Menu, rem } from "@mantine/core";
-import useAxios from "axios-hooks";
-import { useContext, useEffect, useState } from "react";
+import { useState } from "react";
 import { notifications } from "@mantine/notifications";
+import {
+    useGetPrinters,
+    useSendToPrinter,
+} from '@/apiServices/printers';
 
-type SentToPrinterBtnProps = {
-    id: string
-}
-
-export function SendToPrinterBtn({ id }: SentToPrinterBtnProps) {
-    const { settings } = useContext(SettingsContext);
-    const [printers, setPrinters] = useState<Printer[]>([])
-    const [{ data, loading }] = useAxios<Printer[]>({ url: `${settings.localBackend}/printers` })
-    const [{ loading: sLoading }, executeSendToPrinter] = useAxios({}, { manual: true })
-    useEffect(() => {
-        if (!data) return;
-        setPrinters(data)
-    }, [data])
-
+export function SendToPrinterBtn({ id }: { id: string }) {
+    const { data: printers, isLoading } = useGetPrinters();
+    const executeSendToPrinter = useSendToPrinter();
+    const [isSending, setIsSending] = useState(false); 
     function sentToPrinter(p: Printer) {
-        executeSendToPrinter({
-            url: `${settings.localBackend}/printers/${p.uuid}/send/${id}`
-        })
+        setIsSending(true);
+        executeSendToPrinter(p.uuid, id)
             .then(() => {
+                setIsSending(false);
                 notifications.show({
                     title: 'Great Success!',
                     message: 'File sent to printer!',
@@ -33,6 +25,7 @@ export function SendToPrinterBtn({ id }: SentToPrinterBtnProps) {
             })
             .catch((e) => {
                 console.log(e)
+                setIsSending(false);
             });
     }
 
@@ -43,12 +36,12 @@ export function SendToPrinterBtn({ id }: SentToPrinterBtnProps) {
         withinPortal
     >
         <Menu.Target>
-            <ActionIcon variant="subtle" color="gray" loading={loading || sLoading}>
+            <ActionIcon variant="subtle" color="gray" loading={isLoading || isSending}>
                 <IconPrinter style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
             </ActionIcon>
         </Menu.Target>
         <Menu.Dropdown>
-            {printers.map((p, i) => <Menu.Item key={i} onClick={() => sentToPrinter(p)}>{p.name}</Menu.Item>)}
+            {printers?.map((p, i) => <Menu.Item key={i} onClick={() => sentToPrinter(p)}>{p.name}</Menu.Item>)}
         </Menu.Dropdown>
     </Menu>)
 }

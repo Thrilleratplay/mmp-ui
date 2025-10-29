@@ -1,37 +1,29 @@
 import { Dropzone } from "@mantine/dropzone";
 import { Container, Group, rem, Text } from "@mantine/core";
 import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
-import useAxios from "axios-hooks";
-import { useContext } from "react";
-import { SettingsContext } from "@/core/settings/settingsContext";
+import { useState } from 'react';
 import { notifications } from "@mantine/notifications";
-
+import { usePostProjectAsset } from '@/apiServices/projects.ts';
 
 type AddAssetProps = {
     projectUuid: string
 }
 
 export function AddAsset({ projectUuid }: AddAssetProps) {
-    const { settings } = useContext(SettingsContext);
-    const [{ loading }, executeSave] = useAxios(
-        {
-            url: `${settings.localBackend}/projects/${projectUuid}/assets`,
-            method: 'POST'
-        },
-        {
-            manual: true,
-            autoCancel: false
-        }
-    )
+    const [isSaving, setIsSaving] = useState(false);
+    const executeSave = usePostProjectAsset();
+
     const onDrop = (files: File[]) => {
         console.log(files);
         for (const i in files) {
             const formData = new FormData();
             formData.append("project_uuid", projectUuid);
             formData.append("files", files[i]);
-            executeSave({ data: formData })
+            setIsSaving(true);
+            executeSave(projectUuid, { data: formData })
                 .then(({ data }) => {
                     console.log(data);
+                    setIsSaving(false);
                     notifications.show({
                         title: 'Great Success!',
                         message: `${data.name} as added to your project!`,
@@ -39,6 +31,7 @@ export function AddAsset({ projectUuid }: AddAssetProps) {
                     })
                 })
                 .catch((e) => {
+                    setIsSaving(false);
                     console.log(e)
                 });
         }
@@ -46,7 +39,7 @@ export function AddAsset({ projectUuid }: AddAssetProps) {
     return (
         <>
             <Container>
-                <Dropzone onDrop={onDrop} mih={220} loading={loading}>
+                <Dropzone onDrop={onDrop} mih={220} loading={isSaving}>
                     <Group justify="center" gap="xl" mih={220} style={{ pointerEvents: 'none' }}>
                         <Dropzone.Accept>
                             <IconUpload

@@ -1,9 +1,7 @@
 import { Widget } from "@/dashboard/entities/WidgetType";
 import { Card, Group, Text } from "@mantine/core";
 import { useContext, useEffect, useState } from "react";
-import { SettingsContext } from "@/core/settings/settingsContext";
-import { Job, Printer, Thermal } from "@/printers/entities/Printer";
-import useAxios from "axios-hooks";
+import { Job, Thermal } from "@/printers/entities/Printer";
 import { PrintProgressBar } from "../parts/print-progress-bar/PrintProgressBar";
 import Printer3dNozzleHeatOutlineIcon from "mdi-react/Printer3dNozzleHeatOutlineIcon";
 import { IconFile3d, IconPercentage, IconSkateboarding } from "@tabler/icons-react";
@@ -11,18 +9,19 @@ import RadiatorDisabledIcon from "mdi-react/RadiatorDisabledIcon";
 import { SSEContext } from "@/core/sse/SSEContext";
 import { useCumulativeEvent } from "@/core/sse/useCumulativeEvent";
 import { useId } from '@mantine/hooks';
+import { useGetPrinter } from '@/apiServices/printers';
 
 export function PrinterTableWidget(w: Widget) {
-    const { settings } = useContext(SettingsContext);
     const subscriberId = useId();
-    const [{ data: printer, loading }] = useAxios<Printer>({ url: `${settings.localBackend}/printers/${w.config.printer}` })
+    const { data: printer, isLoading } = useGetPrinter(w.config.printer);
+
     const { connected, subscribe, unsubscribe } = useContext(SSEContext)
     const [error, setError] = useState<Error | null>(null);
     const [extruder, setExtruder] = useCumulativeEvent<Thermal>({ temperature: 0 });
     const [heaterBed, setHeaterBed] = useCumulativeEvent<Thermal>({ temperature: 0 });
     const [job, setJob] = useCumulativeEvent<Job>({ progress: 0, fileName: "", message: "" });
     useEffect(() => {
-        if (!connected) return;
+        if (!connected || !subscribe || !unsubscribe) return;
         setExtruder({ temperature: 0 });
         setHeaterBed({ temperature: 0 });
         const subscription = {
@@ -49,7 +48,7 @@ export function PrinterTableWidget(w: Widget) {
         }
     }, [w.config.printer, connected])
 
-    if (loading) return <>Loading...</>;
+    if (isLoading) return <>Loading...</>;
     return (
         <Card withBorder radius="md" p="md">
             <Card.Section withBorder inheritPadding py="xs">

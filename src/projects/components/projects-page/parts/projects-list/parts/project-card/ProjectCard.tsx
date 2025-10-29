@@ -2,16 +2,13 @@ import { Card, Text, Group, rem } from '@mantine/core';
 import classes from './ProjectCard.module.css';
 import { Project } from "@/projects/entities/Project.ts";
 import { Link } from "react-router-dom";
-import { SettingsContext } from '@/core/settings/settingsContext';
-import { useContext } from 'react';
+import { BACKEND_HTTP_URL_ROOT } from '@/core/utils/constants';
 
 type ProjectCardProps = {
     project: Project,
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
-    const { settings } = useContext(SettingsContext);
-
     const size = rem('280px');
     return (
         <Card style={{ height: size, minHeight: size, minWidth: size, width: size }}
@@ -26,7 +23,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
                 <div
                     className={classes.image}
                     style={{
-                        backgroundImage: `url(${settings.localBackend}/projects/${project.uuid}/assets/${project.default_image_id}/file)`,
+                        backgroundImage: `url(${BACKEND_HTTP_URL_ROOT}/projects/${project.uuid}/assets/${project.default_image_id}/file)`,
                         backgroundPosition: 'center',
                     }}
                 />}

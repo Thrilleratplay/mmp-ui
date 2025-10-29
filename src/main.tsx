@@ -1,5 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { QueryClient, QueryClientProvider} from '@tanstack/react-query';
+
 import App from './App.tsx'
 import '@mantine/core/styles/global.css';
 import '@mantine/core/styles.css';
@@ -32,10 +34,11 @@ import { routes as tempFilesRoutes } from "./tempfiles/routes.tsx";
 import { routes as printersRoutes } from "./printers/routes.tsx";
 import { routes as settingsRoutes } from "./settings/routes.tsx";
 
+const queryClient = new QueryClient();
+
 const theme = createTheme({
     /** Put your mantine theme override here */
 });
-
 
 const router = createBrowserRouter([
     {
@@ -69,8 +72,10 @@ console.log(router);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-        <MantineProvider theme={theme} defaultColorScheme="dark">
-            <RouterProvider router={router} />
-        </MantineProvider>
+        <QueryClientProvider client={queryClient}>
+            <MantineProvider theme={theme} defaultColorScheme="dark">
+                <RouterProvider router={router} />
+            </MantineProvider>
+        </QueryClientProvider>
     </React.StrictMode>
 )

@@ -4,7 +4,7 @@ import { ActionIcon, Group, TagsInput, TextInput, Transition, rem } from "@manti
 import { useDisclosure } from "@mantine/hooks";
 import { IconFilter, IconSearch, IconX } from "@tabler/icons-react";
 import useAxios from "axios-hooks";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 
 export type Filter = {
@@ -18,12 +18,13 @@ type ProjectFilterProps = {
 };
 
 export function ProjectFilter({ value, onChange }: ProjectFilterProps) {
-    const { settings } = useContext(SettingsContext);
     const [filter, setFilter] = useState<Filter>(value)
     const [tags, setTags] = useState<string[]>([]);
-    const [{ data, loading, error }] = useAxios<Tag[]>(
-        `${settings.localBackend}/tags`
-    );
+    const [{ 
+        data, 
+        loading, 
+        // error,
+     }] = useAxios<Tag[]>('tags');
 
     useEffect(() => {
         if (!data) return;
